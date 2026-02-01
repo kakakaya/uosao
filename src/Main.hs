@@ -102,14 +102,15 @@ single :: [(Text, Text)]
 single =
   [ ("'", "xtu")
   , ("-", "ー")
-  , ("p", "…")
-  , ("y", "・")
+  , ("p", "…") -- 便利1
+  , ("y", "・") -- 便利2
   , ("a", "a")
   , ("o", "o")
   , ("e", "e")
   , ("u", "u")
   , ("i", "i")
   , (";", "an'")
+  , ("；", "an'")
   , ("q", "on'")
   , ("j", "en'")
   , ("k", "un'")
@@ -127,6 +128,9 @@ data Consonant
 
 -- | 3段マップデータ
 consonant :: [Consonant]
+-- 中指で拗音（ゃゅょ）
+-- 人差し指で促音（っ）
+-- の拡張入力
 consonant =
   [ Consonant
     { start       = [("f", "p"), ("g", "g"), ("c", "k"), ("r", "r")] <>
@@ -156,7 +160,9 @@ basicVowel :: (Text, Text) -> [(Text, Text)]
 basicVowel (yuu, you) =
   [ ("'", "ai")
   , (",", "ou")
+  , ("、", "ou")
   , (".", "ei")
+  , ("。", "ei")
   , ("p", "uu")
   , ("y", "ui")
   , ("a", "a")
@@ -165,6 +171,7 @@ basicVowel (yuu, you) =
   , ("u", "u")
   , ("i", "i")
   , (";", "an'")
+  , ("；", "an'")
   , ("q", "on'")
   , ("j", "en'")
   , ("k", "un'")
@@ -177,7 +184,9 @@ yoonVowel :: [Text] -> [(Text, Text)]
 yoonVowel keys =
   [ ("'", "ixyai")
   , (",", "ixyou")
+  , ("、", "ixyou")
   , (".", "ixei")
+  , ("。", "ixei")
   , ("p", "ixyuu")
   , ("y", "ixyui")
   , ("a", "ixya")
@@ -186,6 +195,7 @@ yoonVowel keys =
   , ("u", "ixyu")
   , ("i", "ixi")
   , (";", "ixyan'")
+  , ("；", "ixyan'")
   , ("q", "ixyon'")
   , ("j", "ixen'")
   , ("k", "ixyun'")
@@ -198,7 +208,9 @@ sokuonVowel :: [(Text, Text)]
 sokuonVowel =
   [ ("'", "ixyaxtu")
   , (",", "ixyoxtu")
+  , ("、", "ixyoxtu")
   , (".", "ixextu")
+  , ("。", "ixextu")
   , ("p", "ixyuxtu")
   , ("y", "ixixtu")
   , ("a", "axtu")
@@ -207,6 +219,7 @@ sokuonVowel =
   , ("u", "uxtu")
   , ("i", "ixtu")
   , (";", "an'xtu")
+  , ("；", "an'xtu")
   , ("q", "on'xtu")
   , ("j", "en'xtu")
   , ("k", "un'xtu")
