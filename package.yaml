@@ -36,7 +36,7 @@ ghc-options:
   - -Wcompat
 
 dependencies:
-  - base >= 4.7 && < 5
+  - base >= 4.20 && < 5
   - classy-prelude
   - romkan
   - text
