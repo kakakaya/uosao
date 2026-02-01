@@ -36,11 +36,11 @@ toHiraganaCompatibleForGoogle = completeKogaki . replace "う゛" "ゔ" . toHira
 -- | ローマ字、かなのペアのリストを基礎的なテーブルデータから生成します
 seqRoma :: [(Text, Text)]
 seqRoma = (manual <>) $ filter removeConflict $
-  -- 小文字にするキーを付与したバージョンも作る
-  concatMap (\x -> [x, bimap ("l" <>) ("x" <>) x]) $
   concat
   -- 単体
   [ single
+  -- 小文字
+  , small
   -- 2シーケンスの変換(hs -> ひょうなど)
   , concatMap
     (\x -> [ c <> v | c <- start x, v <- basicVowel (de $ asLevelKeys x) ])
@@ -71,6 +71,34 @@ seqRoma = (manual <>) $ filter removeConflict $
           ("we" `isPrefixOf` s) ||
           ("wi" `isPrefixOf` s))
 
+  -- 小文字にするキーを付与したバージョンも作る
+  -- concatMap (\x -> [x, bimap ("l" <>) ("x" <>) x]) $
+-- 小文字は単体でのみ入力する
+small :: [(Text, Text)]
+small = 
+  [ ("la", "ぁ")
+  , ("xa", "ぁ")
+  , ("li", "ぃ")
+  , ("xi", "ぃ")
+  , ("lu", "ぅ")
+  , ("xu", "ぅ")
+  , ("le", "ぇ")
+  , ("xe", "ぇ")
+  , ("le", "ぉ")
+  , ("xe", "ぉ")
+  , ("lca", "ゕ")
+  , ("xca", "ゕ")
+  , ("lce", "ゖ")
+  , ("xce", "ゖ")
+  , ("ltu", "っ")
+  , ("xtu", "っ")
+  , ("lwa", "ゎ")
+  , ("xwa", "ゎ")
+  , ("lva", "ゃ")
+  , ("lvu", "ゅ")
+  , ("lvo", "ょ")
+  ]
+
 -- | 手動で入れるしかない特殊変換
 manual :: [(Text, Text)]
 manual =
@@ -84,8 +112,8 @@ manual =
   , ("/b" , "⇔") -- bothから連想
   , ("/d" , "∈") -- Dvorakだと∋と対になっていて丁度いい
   , ("/f" , "∋") -- Dvorakだと∈と対になっていて丁度いい
-    , ("/w" , "ʬ")  -- wの特殊文字なので当然wに配置
--- 矢印キーは z から派生
+  , ("/w" , "ʬ")  -- wの特殊文字なので当然wに配置
+  -- 矢印キーは z から派生
   -- dhtn: VIM 相当
   -- gcmw: ht(jk)の列で斜めを表現
   , ("zd" , "←")
