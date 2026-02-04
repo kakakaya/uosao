@@ -1,0 +1,16 @@
+/* 格子配列スタイル */
+.ortho-keyboard .hg-row {
+  justify-content: center;
+}
+
+.ortho-keyboard .hg-button {
+  width: 200px;
+  height: 100px;
+  color: var(--sl-color-black);
+  font-size: 2em;
+  flex-shrink: 0;
+  margin: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
