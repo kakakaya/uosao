@@ -41,7 +41,22 @@ dependencies:
   - romkan
   - text
 
+library:
+  source-dirs: src
+  exposed-modules:
+    - Uosao
+
 executables:
   uosao:
     main: Main.hs
     source-dirs: src
+    dependencies:
+      - uosao
+
+tests:
+  uosao-test:
+    main: MakeMozcSpec.hs
+    source-dirs: test
+    dependencies:
+      - uosao
+      - hspec
