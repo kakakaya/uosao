@@ -7,7 +7,7 @@ module Uosao ( makeMozc ) where
 
 import           ClassyPrelude hiding (keys)
 import           Data.Char
-import           Data.Text     (replace)
+import qualified Data.Text     as T
 import           NLP.Romkan
 
 -- | 各項目がMozcのキーマップ一行となるリストを生成します
@@ -17,17 +17,19 @@ makeMozc = map (\(s, h) -> s <> "\t" <> h) romaKana
 -- | ローマ字、かなのペアのリストを生成します
 -- かなに未変換のローマ字がある項目は排除します
 romaKana :: [(Text, Text)]
-romaKana = ordNubBy fst (==) $ filter notElemUntransformed $ map (toHiraganaCompatibleForGoogle <$>) seqRoma
- where notElemUntransformed :: (Text, Text) -> Bool
-       notElemUntransformed (_, kana) = not $ any (\c -> isLatin1 c && isAlpha c) kana
+romaKana = ordNubBy fst (==) $ filter validEntry $ map (toHiraganaCompatibleForGoogle <$>) seqRoma
+ where validEntry :: (Text, Text) -> Bool
+       validEntry (key, kana) =
+         not (any (\c -> isLatin1 c && isAlpha c) kana) &&
+         T.length key <= 3 && T.length kana <= 3
 
 -- | NLP.Romkanを使ってローマ字を平仮名に変換します
 -- `toHiragana`は う゛ と出力してしまうため ゔ に直す処理を含めました
 -- see [読みに「う゛」を含む単語を辞書登録できない - Gboard Community](https://support.google.com/gboard/thread/12248624?hl=ja)
 -- ゖとかの小小書きは対応してなかったので雑にラップします
 toHiraganaCompatibleForGoogle :: Text -> Text
-toHiraganaCompatibleForGoogle = completeKogaki . replace "う゛" "ゔ" . toHiragana
-  where completeKogaki = replace "xか" "ゕ" . replace "xけ" "ゖ"
+toHiraganaCompatibleForGoogle = completeKogaki . T.replace "う゛" "ゔ" . toHiragana
+  where completeKogaki = T.replace "xか" "ゕ" . T.replace "xけ" "ゖ"
 
 -- | ローマ字、かなのペアのリストを基礎的なテーブルデータから生成します
 seqRoma :: [(Text, Text)]
@@ -39,13 +41,20 @@ seqRoma = (manual <>) $ filter removeConflict $
   , small
   -- 2シーケンスの変換(hs -> ひょうなど)
   , concatMap
-    (\x -> [ c <> v | c <- start x, v <- basicVowel (de $ asLevelKeys x) ])
+    (\x ->
+      let shortcuts = de $ asLevelKeys x
+      in [ c <> v
+         | c@(cf, _) <- start x
+         , v <- if T.length cf <= 1
+                then basicVowel shortcuts
+                else basicVowelBase
+         ])
     consonant
   -- 拗音3シーケンスの変換(stn -> しゅくなど)
   , concatMap
     (\x ->
         [ (cf <> yoon x <> vf, cs <> vs)
-        | (cf, cs) <- start x
+        | (cf, cs) <- filter ((<= 1) . T.length . fst) $ start x
         , (vf, vs) <- yoonVowel (asLevelKeys x)
         ]
     )
@@ -54,7 +63,7 @@ seqRoma = (manual <>) $ filter removeConflict $
   , concatMap
     (\x ->
        [ (cf <> sokuon x <> vf, cs <> vs)
-       | (cf, cs) <- start x
+       | (cf, cs) <- filter ((<= 1) . T.length . fst) $ start x
        , (vf, vs) <- sokuonVowel
        ]
     )
@@ -73,23 +82,14 @@ seqRoma = (manual <>) $ filter removeConflict $
 small :: [(Text, Text)]
 small =
   [ ("la", "ぁ")
-  , ("xa", "ぁ")
   , ("li", "ぃ")
-  , ("xi", "ぃ")
   , ("lu", "ぅ")
-  , ("xu", "ぅ")
   , ("le", "ぇ")
-  , ("xe", "ぇ")
-  , ("le", "ぉ")
-  , ("xe", "ぉ")
+  , ("lo", "ぉ")
   , ("lca", "ゕ")
-  , ("xca", "ゕ")
   , ("lce", "ゖ")
-  , ("xce", "ゖ")
   , ("ltu", "っ")
-  , ("xtu", "っ")
   , ("lwa", "ゎ")
-  , ("xwa", "ゎ")
   , ("lva", "ゃ")
   , ("lvu", "ゅ")
   , ("lvo", "ょ")
@@ -116,10 +116,11 @@ manual =
   , ("zh" , "↓")
   , ("zt" , "↑")
   , ("zn" , "→")
-  , ("zg" , "↖")
-  , ("zc" , "↗")
-  , ("zm" , "↙")
-  , ("zw" , "↘")
+  -- 斜め矢印: fgcr は dhtn の上段キー
+  , ("zf" , "↖")
+  , ("zg" , "↙")
+  , ("zc" , "↘")
+  , ("zr" , "↗")
   ]
 
 -- | 単体で読みを構成するもの
@@ -127,8 +128,7 @@ single :: [(Text, Text)]
 single =
   [ ("'", "xtu")
   , ("-", "ー")
-  , ("p", "…") -- 便利1
-  , ("y", "・") -- 便利2
+  , ("p", "…") -- 便利
   , ("a", "a")
   , ("o", "o")
   , ("e", "e")
@@ -180,9 +180,9 @@ consonant =
     }
   ]
 
--- | 基礎的な変換テーブル
-basicVowel :: (Text, Text) -> [(Text, Text)]
-basicVowel (yuu, you) =
+-- | 基礎的な変換テーブル（ショートカットなし）
+basicVowelBase :: [(Text, Text)]
+basicVowelBase =
   [ ("'", "ai")
   , (",", "ou")
   , ("、", "ou")
@@ -202,29 +202,34 @@ basicVowel (yuu, you) =
   , ("k", "un'")
   , ("x", "in'")
   ]
+
+-- | 基礎的な変換テーブル（ショートカット付き）
+basicVowel :: (Text, Text) -> [(Text, Text)]
+basicVowel (yuu, you) =
+  basicVowelBase
   <> [(yuu, "ixyuu"), (you, "ixyou")] -- 2キーショートカット
 
 -- | 拗音を含む出力をするためのテーブル
 yoonVowel :: [Text] -> [(Text, Text)]
 yoonVowel keys =
-  [ ("'", "ixyai")
-  , (",", "ixyou")
-  , ("、", "ixyou")
-  , (".", "ixei")
-  , ("。", "ixei")
-  , ("p", "ixyuu")
-  , ("y", "ixyui")
-  , ("a", "ixya")
-  , ("o", "ixyo")
-  , ("e", "ixe")
-  , ("u", "ixyu")
-  , ("i", "ixi")
-  , (";", "ixyan'")
-  , ("；", "ixyan'")
-  , ("q", "ixyon'")
-  , ("j", "ixen'")
-  , ("k", "ixyun'")
-  , ("x", "ixin'")
+  [ ("'", "ixyai") -- ゃい
+  , (",", "ixyou") -- ょう
+  , ("、", "ixyou") -- ょう
+  , (".", "ixei") -- ぇい
+  , ("。", "ixei") -- ぇい
+  , ("p", "ixyuu") -- ゅう
+  , ("y", "ixyui") -- ゅい
+  , ("a", "ixya") -- ゃ
+  , ("o", "ixyo") -- ょ
+  , ("e", "ixe") -- ぇ
+  , ("u", "ixyu") -- ゅ
+  , ("i", "ixi") -- ぃ
+  , (";", "ixyan'") -- ゃん
+  , ("；", "ixyan'") -- ゃん
+  , ("q", "ixyon'") -- ょん
+  , ("j", "ixen'") -- ぇん
+  , ("k", "ixyun'") -- ゅん
+  , ("x", "ixin'")-- ぃん
   ]
   <> zip keys ["ixyatu", "ixyaku", "ixyoku", "ixyuku", "ixyutu"] -- 3キーショートカット
 
@@ -238,7 +243,7 @@ sokuonVowel =
   , ("。", "ixextu")
   , ("p", "ixyuxtu")
   , ("y", "ixixtu")
-  , ("a", "axtu")
+  , ("a", "axtu") -- あっ
   , ("o", "oxtu")
   , ("e", "extu")
   , ("u", "uxtu")
