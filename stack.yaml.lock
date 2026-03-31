@@ -7,13 +7,13 @@ packages:
 - completed:
     hackage: romkan-0.1.0.0@sha256:6c659e2140b56a36e56f71b7517a9ce9a81052d44e9ab7a34e5493726645ae0a,1406
     pantry-tree:
-      size: 323
       sha256: 07c05315790e3e2cf42e09e0121fb409a82b5065d05b01c1d812440de1a4cef4
+      size: 323
   original:
     hackage: romkan-0.1.0.0
 snapshots:
 - completed:
-    size: 533252
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/26.yaml
-    sha256: cdbc5db9c1afe80a5998247939027a0c7db92fa0f20b5cd01596ec3da628b622
-  original: lts-16.26
+    sha256: 72cdd5851794184138551f43f0897c28f1a5acdda303b266aa9e910461103b3c
+    size: 726784
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/24/28.yaml
+  original: lts-24.28

@@ -1,21 +1,21 @@
-name: nlod
-version: 8.0.0
-github: "ncaq/nlod"
+name: uosao
+version: 1.0.0
+github: "kakakaya/uosao"
 license: MIT
-author: "ncaq"
-maintainer: "ncaq@ncaq.net"
-copyright: "© ncaq"
+author: "kakakaya"
+maintainer: "kakakaya@kakakaya.xyz"
+copyright: "© kakakaya"
 
 extra-source-files:
   - README.md
 
 # Metadata used when publishing your package
-synopsis: nlod
+synopsis: uosao
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description: Please see the README on GitHub at <https://github.com/ncaq/nlod#readme>
+description: Please see the README on GitHub at <https://github.com/kakakaya/uosao#readme>
 
 ghc-options:
   - -Wall
@@ -36,12 +36,27 @@ ghc-options:
   - -Wcompat
 
 dependencies:
-  - base >= 4.7 && < 5
+  - base >= 4.20 && < 5
   - classy-prelude
   - romkan
   - text
 
+library:
+  source-dirs: src
+  exposed-modules:
+    - Uosao
+
 executables:
-  nlod:
+  uosao:
     main: Main.hs
     source-dirs: src
+    dependencies:
+      - uosao
+
+tests:
+  uosao-test:
+    main: MakeMozcSpec.hs
+    source-dirs: test
+    dependencies:
+      - uosao
+      - hspec
